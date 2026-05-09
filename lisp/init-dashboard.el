@@ -1,0 +1,135 @@
+;; init-dashboard.el --- Initialize dashboard configurations.	-*- lexical-binding: t -*-
+;; Dashboard configurations.
+
+;;; Code:
+
+(eval-when-compile
+  (require 'init-const)
+  (require 'init-custom))
+
+;; Dashboard
+(when danis-dashboard
+  (use-package dashboard
+    :diminish
+    :autoload dashboard-setup-startup-hook
+    :functions icons-displayable-p nerd-icons-mdicon nerd-icons-octicon
+    :custom-face
+    (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
+    (dashboard-items-face ((t (:weight normal))))
+    (dashboard-no-items-face ((t (:weight normal))))
+    :bind (("<f2>" . open-dashboard)
+           :map dashboard-mode-map
+           ("H" . browse-homepage)
+           ("O" . restore-session)
+           ("S" . open-setting-files)
+           ("U" . update-config-and-packages)
+           ("q" . quit-dashboard))
+    :hook (dashboard-mode . (lambda () (setq-local frame-title-format nil)))
+    :init
+    (setq dashboard-banner-logo-title "DANIS EMACS"
+          dashboard-startup-banner nil
+          dashboard-page-separator "\n\f\n"
+          dashboard-projects-backend 'project-el
+          dashboard-path-style 'truncate-middle
+          dashboard-path-max-length 60
+          dashboard-center-content t
+          dashboard-vertically-center-content t
+          dashboard-show-shortcuts nil
+          dashboard-items '((recents  . 10)
+                            (bookmarks . 5)
+                            (projects . 5))
+
+          dashboard-startupify-list '(dashboard-insert-newline
+                                      dashboard-insert-navigator
+                                      dashboard-insert-newline
+                                      dashboard-insert-items
+                                      dashboard-insert-newline
+                                      dashboard-insert-footer)
+
+          dashboard-display-icons-p #'icons-displayable-p
+          dashboard-set-file-icons danis-icon
+          dashboard-set-heading-icons danis-icon
+          dashboard-heading-icons '((recents   . "nf-oct-history")
+                                    (bookmarks . "nf-oct-bookmark")
+                                    (agenda    . "nf-oct-calendar")
+                                    (projects  . "nf-oct-briefcase")
+                                    (registers . "nf-oct-database"))
+
+          dashboard-navigator-buttons
+          `(((,(when (icons-displayable-p)
+                 (nerd-icons-mdicon "nf-md-github" :height 1.4))
+              "Homepage" "Visit homepage (H)"
+              (lambda (&rest _) (browse-url danis-homepage)))
+             (,(when (icons-displayable-p)
+                 (nerd-icons-mdicon "nf-md-backup_restore" :height 1.5))
+              "Restore" "Restore previous session (O)"
+              (lambda (&rest _) (restore-session)))
+             (,(when (icons-displayable-p)
+                 (nerd-icons-mdicon "nf-md-tools" :height 1.3))
+              "Settings" "Open setting files (S)"
+              (lambda (&rest _) (open-setting-files)))
+             (,(when (icons-displayable-p)
+                 (nerd-icons-mdicon "nf-md-update" :height 1.3))
+              "Update" "Update Danis Emacs (U)"
+              (lambda (&rest _) (danis-update)))
+             (,(if (icons-displayable-p)
+                   (nerd-icons-mdicon "nf-md-help" :height 1.2)
+                 "?")
+              "" "Ask for help (?/h)"
+              (lambda (&rest _) (dashboard-hydra/body)))))
+
+          dashboard-footer-icon
+          (if (icons-displayable-p)
+              (nerd-icons-octicon "nf-oct-heart" :height 1.2 :face 'nerd-icons-lred)
+            (propertize ">" 'face 'dashboard-footer)))
+
+    (dashboard-setup-startup-hook)
+    :config
+    (with-no-warnings
+      ;; Insert copyright
+      ;; @see https://github.com/emacs-dashboard/emacs-dashboard/issues/219
+      (defun my/dashboard-insert-copyright ()
+        "Insert copyright in the footer."
+        (dashboard-insert-center
+         (propertize (format "\nPowered by DNR Studio, %s\n" (format-time-string "%Y"))
+                     'face 'font-lock-comment-face)))
+      (advice-add #'dashboard-insert-footer :after #'my/dashboard-insert-copyright)
+
+      (defun restore-session ()
+        "Restore the previous session."
+        (interactive)
+        (quit-dashboard)
+        (when (bound-and-true-p tabspaces-mode)
+          (tabspaces-restore-session)))
+
+      (defun open-setting-files ()
+        "Open setting files."
+        (interactive)
+        (quit-dashboard)
+        (find-custom-file))
+
+      (defun open-dashboard ()
+        "Display dashboard in maximized window."
+        (interactive)
+        (dashboard-open)
+        (delete-other-windows))
+
+      (defun quit-dashboard ()
+        "Quit dashboard."
+        (interactive)
+        (when (buffer-live-p (get-buffer dashboard-buffer-name))
+          (kill-buffer dashboard-buffer-name))
+
+        ;; Create workspace if necessary
+        (unless (bound-and-true-p tabspaces-session)
+          (setq tabspaces-session t)
+          (tabspaces-switch-or-create-workspace tabspaces-default-tab))
+
+        ;; Recover layout
+        (when (bound-and-true-p tab-bar-history-mode)
+          (tab-bar-history-back))))))
+
+(provide 'init-dashboard)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; init-dashboard.el ends here
