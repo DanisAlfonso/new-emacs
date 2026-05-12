@@ -35,9 +35,7 @@
           dashboard-center-content t
           dashboard-vertically-center-content t
           dashboard-show-shortcuts nil
-          dashboard-items '((recents  . 10)
-                            (bookmarks . 5)
-                            (projects . 5))
+          dashboard-items '((recents  . 10))
 
           dashboard-startupify-list '(dashboard-insert-newline
                                       dashboard-insert-navigator
@@ -71,12 +69,7 @@
              (,(when (icons-displayable-p)
                  (nerd-icons-mdicon "nf-md-update" :height 1.3))
               "Update" "Update Danis Emacs (U)"
-              (lambda (&rest _) (danis-update)))
-             (,(if (icons-displayable-p)
-                   (nerd-icons-mdicon "nf-md-help" :height 1.2)
-                 "?")
-              "" "Ask for help (?/h)"
-              (lambda (&rest _) (dashboard-hydra/body)))))
+              (lambda (&rest _) (danis-update)))))
 
           dashboard-footer-icon
           (if (icons-displayable-p)
