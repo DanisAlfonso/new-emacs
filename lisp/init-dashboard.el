@@ -35,7 +35,7 @@
           dashboard-center-content t
           dashboard-vertically-center-content t
           dashboard-show-shortcuts nil
-          dashboard-items '((recents  . 10))
+          dashboard-items '(())
 
           dashboard-startupify-list '(dashboard-insert-newline
                                       dashboard-insert-navigator
